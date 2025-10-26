@@ -1,0 +1,60 @@
+name: Build Frontend Artifacts Test
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+  actions: read
+
+env:
+  JFROG_CLI_BUILD_NAME: GHA-NPM-Test
+  JF_URL: ${{ vars.JF_URL }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Use a standard runner for reproduction
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or any recent version
+
+      - name: Set up JFrog CLI with OIDC
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ vars.JF_URL }}
+        with:
+          # This should match the OIDC provider name configured in Artifactory
+          oidc-provider-name: github-actions-oidc
+
+      - name: Jfrog Configure npm (OIDC)
+        run: |
+          # This command will configure .npmrc to use Artifactory and authenticate
+          jfrog npm-config --repo-resolve=my-npm-virtual --repo-deploy=my-npm-local # Use my-npm-local for deploy if you ever publish
+
+      - name: Verify npm config
+        run: cat ~/.npmrc
+
+      - name: Install dependencies (OIDC)
+        run: jf npm ci
+
+#       --- Optional: Test with Access Token (Uncomment to test this path) ---
+      - name: Set up JFrog CLI with Access Token
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+         JF_URL: ${{ vars.JF_URL }}
+         JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
+        with:
+         version: 'latest' # Ensure latest CLI version
+
+      - name: Jfrog Configure npm (Access Token)
+        run: |
+         jfrog npm-config --repo-resolve=my-npm-virtual --repo-deploy=my-npm-local
+      - name: Install dependencies (Access Token)
+        run: jf npm ci
