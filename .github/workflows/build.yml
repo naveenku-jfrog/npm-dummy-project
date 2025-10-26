@@ -34,15 +34,15 @@ jobs:
 
       - name: Jfrog Configure npm (Access Token)
         run: |
-          # The --global-npmrc=false flag tells JFrog CLI to create .npmrc in the current working directory.
+          # The default behavior when --global is omitted is to write .npmrc to the current working directory.
           # We ensure the command runs in the repository root using working-directory.
-          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local --global-npmrc=false
+          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
         working-directory: ${{ github.workspace }} # <--- IMPORTANT: Run this command in the repo root
 
       - name: Verify npm config
         run: cat ./.npmrc # <--- IMPORTANT: Look for .npmrc in the current directory (repo root)
-        working-directory: ${{ github.workspace }} # <--- IMPORTANT: Execute in the repo root
+        working-directory: ${{ github.workspace }}
 
       - name: Install dependencies (Access Token)
         run: jf npm ci
-        working-directory: ${{ github.workspace }} # <--- IMPORTANT: Execute in the repo root
+        working-directory: ${{ github.workspace }}
