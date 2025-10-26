@@ -28,19 +28,31 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v4
         env:
           JF_URL: ${{ vars.JF_URL }}
-          JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }} # Ensure this secret is correctly configured in GitHub
+          JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
         with:
           version: 'latest'
 
       - name: Jfrog Configure npm (Access Token)
         run: |
-          # The default behavior when --global is omitted is to write .npmrc to the current working directory.
-          # We ensure the command runs in the repository root using working-directory.
-          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
-        working-directory: ${{ github.workspace }} # <--- IMPORTANT: Run this command in the repo root
+          # Use --build-npmrc to explicitly tell jfrog CLI where to write the .npmrc
+          # Ensure this path is within the workspace.
+          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local --build-npmrc ./.npmrc
+        working-directory: ${{ github.workspace }}
 
-      - name: Verify npm config
-        run: cat ./.npmrc # <--- IMPORTANT: Look for .npmrc in the current directory (repo root)
+      - name: Verify npm config and file creation
+        run: |
+          echo "--- Listing files in current directory ---"
+          ls -la .
+          echo "--- Contents of ./.npmrc ---"
+          cat ./.npmrc
+          echo "--- NPM config list ---"
+          npm config list
+          echo "--- NPM config get registry ---"
+          npm config get registry
+          echo "--- NPM config get @scope:registry ---"
+          # Replace '@chkp' with your actual scope if it's different.
+          # If you don't use a specific scope like @chkp, this command might not show anything.
+          npm config get @chkp:registry
         working-directory: ${{ github.workspace }}
 
       - name: Install dependencies (Access Token)
