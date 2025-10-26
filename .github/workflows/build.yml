@@ -31,7 +31,7 @@ jobs:
           JF_URL: ${{ vars.JF_URL }}
         with:
           # This should match the OIDC provider name configured in Artifactory
-          oidc-provider-name: github-actions-oidc
+          oidc-provider-name: github-test
 
       - name: Jfrog Configure npm (OIDC)
         run: |
