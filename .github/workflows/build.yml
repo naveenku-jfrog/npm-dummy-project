@@ -44,7 +44,7 @@ jobs:
 
       - name: Jfrog Configure npm (Access Token)
         run: |
-          jfrog npm-config --repo-resolve=my-npm-virtual --repo-deploy=my-npm-local
+          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
 
       - name: Verify npm config
         run: cat ~/.npmrc
