@@ -32,27 +32,31 @@ jobs:
         with:
           version: 'latest'
 
+      - name: Debug Working Directory before npm-config
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "Content of current directory before npm-config:"
+          ls -la .
+        working-directory: ${{ github.workspace }} # Ensure we're in the repo root
+
       - name: Jfrog Configure npm (Access Token)
         run: |
-          # Use --build-npmrc to explicitly tell jfrog CLI where to write the .npmrc
-          # Ensure this path is within the workspace.
-          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local --build-npmrc ./.npmrc
-        working-directory: ${{ github.workspace }}
+          # Use the default behavior: .npmrc written to current working directory
+          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
+        working-directory: ${{ github.workspace }} # This is essential
 
-      - name: Verify npm config and file creation
+      - name: Verify npm config and filesystem state
         run: |
-          echo "--- Listing files in current directory ---"
+          echo "Current working directory for verification: $(pwd)"
+          echo "--- Listing files in current directory AFTER npm-config ---"
           ls -la .
-          echo "--- Contents of ./.npmrc ---"
-          cat ./.npmrc
-          echo "--- NPM config list ---"
-          npm config list
-          echo "--- NPM config get registry ---"
-          npm config get registry
-          echo "--- NPM config get @scope:registry ---"
-          # Replace '@chkp' with your actual scope if it's different.
-          # If you don't use a specific scope like @chkp, this command might not show anything.
-          npm config get @chkp:registry
+          echo "--- Contents of ./.npmrc (if it exists) ---"
+          cat ./.npmrc || echo "Error: ./.npmrc not found after creation attempt."
+          echo "--- NPM config list (global and local) ---"
+          npm config list --location=global
+          npm config list --location=project
+          npm config list --location=user
+          npm config list # effective configuration
         working-directory: ${{ github.workspace }}
 
       - name: Install dependencies (Access Token)
