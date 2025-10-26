@@ -5,7 +5,7 @@ on:
       - main
   workflow_dispatch: # Allows manual triggering
 permissions:
-  id-token: write # Required for OIDC
+  # id-token: write # No longer needed if not using OIDC
   contents: read
   actions: read
 
@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Use a standard runner for reproduction
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,38 +23,31 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Or any recent version
+          node-version: '20'
 
-      - name: Set up JFrog CLI with OIDC
+      # --- REMOVE OR COMMENT OUT THIS OIDC BLOCK ---
+      # - name: Set up JFrog CLI with OIDC
+      #   uses: jfrog/setup-jfrog-cli@v4
+      #   env:
+      #     JF_URL: ${{ vars.JF_URL }}
+      #   with:
+      #     oidc-provider-name: github-actions-oidc
+
+      # --- ENABLE THIS ACCESS TOKEN BLOCK ---
+      - name: Set up JFrog CLI with Access Token
         uses: jfrog/setup-jfrog-cli@v4
         env:
           JF_URL: ${{ vars.JF_URL }}
+          JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }} # Use the secret you created
         with:
-          oidc-provider-name: github-test
-          oidc-audience: https://github.com/naveenku-jfrog
+          version: 'latest' # Ensure latest CLI version
 
-      - name: Jfrog Configure npm (OIDC)
+      - name: Jfrog Configure npm (Access Token)
         run: |
-          # This command will configure .npmrc to use Artifactory and authenticate
-          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local # Use my-npm-local for deploy if you ever publish
+          jfrog npm-config --repo-resolve=my-npm-virtual --repo-deploy=my-npm-local
 
       - name: Verify npm config
         run: cat ~/.npmrc
 
-      - name: Install dependencies (OIDC)
-        run: jf npm ci
-
-#       --- Optional: Test with Access Token (Uncomment to test this path) ---
-      - name: Set up JFrog CLI with Access Token
-        uses: jfrog/setup-jfrog-cli@v4
-        env:
-         JF_URL: ${{ vars.JF_URL }}
-         JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
-        with:
-         version: 'latest' # Ensure latest CLI version
-
-      - name: Jfrog Configure npm (Access Token)
-        run: |
-         jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
       - name: Install dependencies (Access Token)
         run: jf npm ci
