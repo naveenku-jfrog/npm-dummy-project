@@ -19,6 +19,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get Runner IP
+        run: |
+          echo "GitHub Actions Runner IP: $(curl -s ifconfig.me)"
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
