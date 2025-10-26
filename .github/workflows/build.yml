@@ -37,13 +37,14 @@ jobs:
           echo "--- Listing JFrog CLI configured servers ---"
           jf c show
           echo "--- Pinging Artifactory with the configured server ---"
-          # This will use the default server created by setup-jfrog-cli, typically 'setup-jfrog-cli-server'
-          jf rt ping
+          jf rt ping # This is the failing one
+          echo "--- Getting Artifactory Version (known working) ---"
+          jf rt curl /api/system/version # This should work
+          echo "--- Direct curl to ping endpoint (test) ---"
+          jf rt curl /api/system/ping # This is the new test
           echo "--- Checking available npm repositories ---"
-          jf rt curl /api/npm/repos # List all npm repos Artifactory knows about
-          jf rt curl /api/npm/repos?type=virtual # List only virtual npm repos
-          # Try to resolve a non-scoped package from npm-virtual
-          jf rt s npm-virtual list --names --recursive
+          jf rt curl /api/npm/repos
+          jf rt curl /api/npm/repos?type=virtual
         working-directory: ${{ github.workspace }}
 
       - name: Jfrog Configure npm (Access Token)
