@@ -36,7 +36,7 @@ jobs:
       - name: Jfrog Configure npm (OIDC)
         run: |
           # This command will configure .npmrc to use Artifactory and authenticate
-          jfrog npm-config --repo-resolve=my-npm-virtual --repo-deploy=my-npm-local # Use my-npm-local for deploy if you ever publish
+          jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local # Use my-npm-local for deploy if you ever publish
 
       - name: Verify npm config
         run: cat ~/.npmrc
@@ -55,6 +55,6 @@ jobs:
 
       - name: Jfrog Configure npm (Access Token)
         run: |
-         jfrog npm-config --repo-resolve=my-npm-virtual --repo-deploy=my-npm-local
+         jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
       - name: Install dependencies (Access Token)
         run: jf npm ci
