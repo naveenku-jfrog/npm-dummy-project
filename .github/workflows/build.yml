@@ -32,30 +32,30 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Debug Working Directory before npm-config
+      - name: Debug JFrog CLI Server Config
         run: |
-          echo "Current working directory: $(pwd)"
-          echo "Content of current directory before npm-config:"
-          ls -la .
-        working-directory: ${{ github.workspace }} # Ensure we're in the repo root
+          echo "--- Listing JFrog CLI configured servers ---"
+          jf c show
+          echo "--- Pinging Artifactory with the configured server ---"
+          # This will use the default server created by setup-jfrog-cli, typically 'setup-jfrog-cli-server'
+          jf rt ping
+          echo "--- Checking available npm repositories ---"
+          jf rt curl /api/npm/repos # List all npm repos Artifactory knows about
+          jf rt curl /api/npm/repos?type=virtual # List only virtual npm repos
+          # Try to resolve a non-scoped package from npm-virtual
+          jf rt s npm-virtual list --names --recursive
+        working-directory: ${{ github.workspace }}
 
       - name: Jfrog Configure npm (Access Token)
         run: |
-          # Use the default behavior: .npmrc written to current working directory
           jfrog npm-config --repo-resolve=npm-virtual --repo-deploy=npm-local
-        working-directory: ${{ github.workspace }} # This is essential
+        working-directory: ${{ github.workspace }}
 
       - name: Verify npm config and filesystem state
         run: |
-          echo "Current working directory for verification: $(pwd)"
-          echo "--- Listing files in current directory AFTER npm-config ---"
-          ls -la .
           echo "--- Contents of ./.npmrc (if it exists) ---"
           cat ./.npmrc || echo "Error: ./.npmrc not found after creation attempt."
-          echo "--- NPM config list (global and local) ---"
-          npm config list --location=global
-          npm config list --location=project
-          npm config list --location=user
+          echo "--- NPM config list (effective) ---"
           npm config list # effective configuration
         working-directory: ${{ github.workspace }}
 
